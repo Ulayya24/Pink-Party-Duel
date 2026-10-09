@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pink Party Duel - Game 2 Player Local</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      background: radial-gradient(circle at center, #2e081d 0%, #12030c 100%);
+    }
+
+    .font-outfit {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .pink-glow {
+      box-shadow: 0 0 25px rgba(244, 114, 182, 0.4), inset 0 0 15px rgba(244, 114, 182, 0.2);
+    }
+
+    .pink-glow-lg {
+      box-shadow: 0 0 40px rgba(236, 72, 153, 0.6);
+    }
+
+    .text-pink-glow {
+      text-shadow: 0 0 12px rgba(244, 114, 182, 0.8), 0 0 24px rgba(219, 39, 119, 0.5);
+    }
+
+    .glass-panel {
+      background: rgba(255, 182, 217, 0.07);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(251, 113, 133, 0.25);
+    }
+
+    .btn-pink {
+      background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-pink:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(236, 72, 153, 0.6);
+    }
+
+    .btn-pink:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .btn-cyan {
+      background: linear-gradient(135deg, #f43f5e 0%, #9f1239 100%);
+      box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #12030c;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #ec4899;
+      border-radius: 9999px;
+    }
+
+    canvas {
+      border-radius: 1.5rem;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body class="h-full w-full text-pink-100 flex flex-col items-center justify-between p-2 sm:p-4 overflow-x-hidden select-none">
+
+  <!-- Main Header Navigation -->
+  <header class="w-full max-w-5xl flex items-center justify-between py-2 px-4 glass-panel rounded-2xl mb-2 z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-rose-300 flex items-center justify-center text-white text-xl shadow-lg animate-pulse">
+        <i class="fa-solid fa-heart"></i>
+      </div>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-rose-300 to-pink-500 text-pink-glow">
+          PINK PARTY DUEL
+        </h1>
+        <p class="text-xs text-pink-300/70 hidden sm:block">Aesthetic 2-Player Local Arcade Showdown</p>
+      </div>
+    </div>
+
+    <!-- Audio & Mode Action Controls -->
+    <div class="flex items-center gap-2">
+      <button id="btnSound" class="px-3 py-2 rounded-xl glass-panel text-pink-300 hover:text-white transition flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-volume-high" id="soundIcon"></i>
+        <span class="hidden md:inline">Suara: ON</span>
+      </button>
+      <button id="btnPause" class="px-3 py-2 rounded-xl glass-panel text-pink-300 hover:text-white transition text-sm">
+        <i class="fa-solid fa-pause"></i>
+      </button>
+      <button id="btnHelp" class="px-3 py-2 rounded-xl glass-panel text-pink-300 hover:text-white transition text-sm">
+        <i class="fa-solid fa-circle-question"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Game Canvas & Overlay Screen Container -->
+  <main class="relative w-full max-w-5xl flex-1 flex flex-col items-center justify-center my-auto">
+    
+    <!-- Top Scoreboard (Visible during play) -->
+    <div id="hudOverlay" class="hidden absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+      <!-- Player 1 Status Card -->
+      <div class="glass-panel p-3 rounded-2xl flex items-center gap-3 bg-pink-950/60 border-pink-500/40 min-w-[140px] sm:min-w-[180px]">
+        <div id="p1AvatarIcon" class="w-10 h-10 rounded-full bg-pink-500/30 border-2 border-pink-400 flex items-center justify-center text-2xl">
+          🐰
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-pink-300 uppercase tracking-wider">Player 1 (WASD)</div>
+          <div id="p1Score" class="text-2xl font-black text-pink-200">0</div>
+        </div>
+      </div>
+
+      <!-- Center Match Timer / Status -->
+      <div class="glass-panel px-4 py-2 rounded-2xl bg-pink-950/80 border-pink-400/50 flex flex-col items-center">
+        <span id="gameTimer" class="text-2xl font-black text-pink-300 tracking-wider">60</span>
+        <span id="gameModeTitle" class="text-[10px] font-bold text-pink-400 uppercase">CUPCAKE CRUSH</span>
+      </div>
+
+      <!-- Player 2 Status Card -->
+      <div class="glass-panel p-3 rounded-2xl flex items-center gap-3 bg-rose-950/60 border-rose-500/40 min-w-[140px] sm:min-w-[180px] flex-row-reverse text-right">
+        <div id="p2AvatarIcon" class="w-10 h-10 rounded-full bg-rose-500/30 border-2 border-rose-400 flex items-center justify-center text-2xl">
+          🐱
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-rose-300 uppercase tracking-wider">Player 2 (ARROWS)</div>
+          <div id="p2Score" class="text-2xl font-black text-rose-200">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Game Canvas -->
+    <div class="relative w-full aspect-[16/9] max-h-[70vh] flex items-center justify-center">
+      <canvas id="gameCanvas" class="w-full h-full pink-glow border-2 border-pink-500/30 shadow-2xl bg-slate-900/90"></canvas>
+
+      <!-- START / MENU OVERLAY -->
+      <div id="menuOverlay" class="absolute inset-0 z-20 glass-panel rounded-3xl p-6 flex flex-col items-center justify-center text-center bg-slate-950/80 backdrop-blur-md">
+        <div class="text-pink-400 font-bold uppercase tracking-widest text-sm mb-1 animate-bounce">
+          ✨ Multiplayer 1 Komputer / Keyboard ✨
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-pink-400 to-rose-400 text-pink-glow mb-4">
+          PINK PARTY DUEL
+        </h2>
+        
+        <p class="max-w-md text-pink-200/80 text-sm mb-6">
+          Ajak temanmu bertarung di 1 keyboard! Pilih karakter favoritmu, pilih mode permainan pink yang seru, dan buktikan siapa pemenangnya!
+        </p>
+
+        <!-- Mode Selection Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl mb-6">
+          <button class="mode-btn glass-panel p-4 rounded-2xl hover:bg-pink-500/20 border-pink-400/40 text-left transition group active border-2 border-pink-400" data-mode="CUPCAKE">
+            <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🧁</div>
+            <div class="font-bold text-pink-200 text-sm">Cupcake Rush</div>
+            <div class="text-xs text-pink-300/70">Kumpulkan kue paling banyak & serang lawan!</div>
+          </button>
+          
+          <button class="mode-btn glass-panel p-4 rounded-2xl hover:bg-pink-500/20 border-pink-400/20 text-left transition group" data-mode="SUMO">
+            <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🌸</div>
+            <div class="font-bold text-pink-200 text-sm">Pink Sumo</div>
+            <div class="text-xs text-pink-300/70">Dorong lawan keluar dari arena pink!</div>
+          </button>
+          
+          <button class="mode-btn glass-panel p-4 rounded-2xl hover:bg-pink-500/20 border-pink-400/20 text-left transition group" data-mode="TAG">
+            <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">💖</div>
+            <div class="font-bold text-pink-200 text-sm">Heart Tag</div>
+            <div class="text-xs text-pink-300/70">Oper bom hati sebelum meledak!</div>
+          </button>
+        </div>
+
+        <div class="flex gap-4">
+          <button id="btnStartGame" class="btn-pink px-8 py-3 rounded-2xl font-bold text-lg text-white tracking-wide">
+            <i class="fa-solid fa-play mr-2"></i> MULAI MAIN
+          </button>
+        </div>
+      </div>
+
+      <!-- PAUSE OVERLAY -->
+      <div id="pauseOverlay" class="hidden absolute inset-0 z-20 glass-panel rounded-3xl p-6 flex flex-col items-center justify-center text-center bg-slate-950/85">
+        <h3 class="text-3xl font-black text-pink-300 mb-4">GAME DIPAUS</h3>
+        <div class="flex flex-col gap-3 w-48">
+          <button id="btnResume" class="btn-pink py-2 rounded-xl font-bold text-white">Lanjutkan</button>
+          <button id="btnRestart" class="glass-panel py-2 rounded-xl font-bold text-pink-200 hover:bg-pink-500/20">Ulangi Round</button>
+          <button id="btnBackMenu" class="glass-panel py-2 rounded-xl font-bold text-pink-300 hover:bg-pink-500/20">Ke Menu Utama</button>
+        </div>
+      </div>
+
+      <!-- WINNER OVERLAY -->
+      <div id="winOverlay" class="hidden absolute inset-0 z-20 glass-panel rounded-3xl p-6 flex flex-col items-center justify-center text-center bg-slate-950/90 backdrop-blur-lg">
+        <div class="text-5xl mb-2 animate-bounce" id="winEmoji">🏆</div>
+        <h2 id="winTitle" class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-rose-300 to-pink-500 text-pink-glow mb-2">
+          PLAYER 1 MENANG!
+        </h2>
+        <p id="winSubtitle" class="text-pink-200 text-sm mb-6">Skor Akhir: 5 - 3</p>
+        <div class="flex gap-4">
+          <button id="btnPlayAgain" class="btn-pink px-6 py-3 rounded-xl font-bold text-white">Main Lagi</button>
+          <button id="winBackMenu" class="glass-panel px-6 py-3 rounded-xl font-bold text-pink-300 hover:bg-pink-500/20">Menu Utama</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Control Guides / Key Controls Banner -->
+  <footer class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 z-10">
+    <!-- Player 1 Controls -->
+    <div class="glass-panel p-3 rounded-2xl bg-pink-950/40 border-pink-500/30 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🐰</span>
+        <div>
+          <span class="font-bold text-xs text-pink-300 block">PLAYER 1 (Pink Bunny)</span>
+          <span class="text-[11px] text-pink-200/70">Gerak: <b class="text-pink-300">W A S D</b></span>
+        </div>
+      </div>
+      <div class="flex gap-1 text-xs">
+        <kbd class="px-2 py-1 bg-pink-900/80 border border-pink-400/50 rounded font-mono text-pink-200">SPACE</kbd>
+        <span class="text-[10px] text-pink-300 self-center">Dash/Lompat</span>
+      </div>
+    </div>
+
+    <!-- Player 2 Controls -->
+    <div class="glass-panel p-3 rounded-2xl bg-rose-950/40 border-rose-500/30 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🐱</span>
+        <div>
+          <span class="font-bold text-xs text-rose-300 block">PLAYER 2 (Magenta Cat)</span>
+          <span class="text-[11px] text-rose-200/70">Gerak: <b class="text-rose-300">PANAH KEYBOARD</b></span>
+        </div>
+      </div>
+      <div class="flex gap-1 text-xs">
+        <kbd class="px-2 py-1 bg-rose-900/80 border border-rose-400/50 rounded font-mono text-rose-200">ENTER / L</kbd>
+        <span class="text-[10px] text-rose-300 self-center">Dash/Lompat</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Help / Instructions Modal -->
+  <div id="helpModal" class="hidden fixed inset-0 z-50 glass-panel bg-slate-950/80 flex items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900/95 max-w-md w-full p-6 rounded-3xl border-pink-400/40">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-pink-300"><i class="fa-solid fa-book-open mr-2"></i> Cara Bermain</h3>
+        <button id="btnCloseHelp" class="text-pink-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-pink-200/90 leading-relaxed">
+        <p><b>🧁 Cupcake Rush:</b> Ambil kue cupcake pink yang muncul di arena. Gunakan tombol Dash untuk mendorong lawan & mencuri kue!</p>
+        <p><b>🌸 Pink Sumo:</b> Bertahan di platform! Tabrak lawan untuk mendorong mereka keluar arena. Semakin cepat kamu dash, semakin kuat dorongannya!</p>
+        <p><b>💖 Heart Tag:</b> Pemain yang memegang bom hati harus menabrak lawan sebelum waktu habis!</p>
+        <div class="p-3 bg-pink-950/60 rounded-xl border border-pink-500/30 text-pink-300 text-xs">
+          💡 <b>Tip Pro:</b> Tekan tombol Dash tepat saat bersentuhan dengan lawan untuk efek Knockback ganda!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Audio Engine & Core Game Logic -->
+  <script>
+    // --- WEB AUDIO API SYNTHESIZER ---
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.1) {
+        if (!this.enabled) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      playJump() {
+        if (!this.enabled) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.15);
+        } catch(e){}
+      }
+
+      playDash() {
+        if (!this.enabled) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.1);
+        } catch(e){}
+      }
+
+      playCollect() {
+        if (!this.enabled) return;
+        this.playTone(523.25, 'sine', 0.08, 0.15); // C5
+        setTimeout(() => this.playTone(659.25, 'sine', 0.08, 0.15), 60); // E5
+        setTimeout(() => this.playTone(783.99, 'sine', 0.12, 0.15), 120); // G5
+      }
+
+      playHit() {
+        if (!this.enabled) return;
+        this.playTone(120, 'square', 0.12, 0.2);
+      }
+
+      playWin() {
+        if (!this.enabled) return;
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'triangle', 0.2, 0.2), idx * 100);
+        });
+      }
+    }
+
+    const soundFx = new SoundEngine();
+
+    // --- GAME ENGINE SETUP ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Virtual resolution for scaling
+    const GAME_WIDTH = 960;
+    const GAME_HEIGHT = 540;
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      const rect = container.getBoundingClientRect();
+      canvas.width = GAME_WIDTH;
+      canvas.height = GAME_HEIGHT;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Key input listener state
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+        e.preventDefault();
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    // Particle system
+    class Particle {
+      constructor(x, y, color, size, vx, vy, life = 1.0) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.size = size;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = life;
+        this.maxLife = life;
+      }
+
+      update(dt) {
+        this.x += this.vx * dt * 60;
+        this.y += this.vy * dt * 60;
+        this.life -= dt;
+      }
+
+      draw(ctx) {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    let particles = [];
+    function spawnSparkles(x, y, color = '#f472b6', count = 12) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1 + Math.random() * 4;
+        particles.push(new Particle(
+          x, y,
+          color,
+          2 + Math.random() * 4,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
+          0.4 + Math.random() * 0.4
+        ));
+      }
+    }
+
+    // --- PLAYER CLASS ---
+    class Player {
+      constructor(id, x, y, color, avatar, isP1) {
+        this.id = id;
+        this.startX = x;
+        this.startY = y;
+        this.x = x;
+        this.y = y;
+        this.radius = 22;
+        this.vx = 0;
+        this.vy = 0;
+        this.speed = 6.5;
+        this.color = color;
+        this.avatar = avatar;
+        this.isP1 = isP1;
+
+        this.score = 0;
+        this.isGrounded = false;
+        this.dashCooldown = 0;
+        this.isDashing = false;
+        this.dashTimer = 0;
+        this.hasHeartTag = false;
+        this.stunTimer = 0;
+      }
+
+      reset(x, y) {
+        this.x = x || this.startX;
+        this.y = y || this.startY;
+        this.vx = 0;
+        this.vy = 0;
+        this.isGrounded = false;
+        this.dashCooldown = 0;
+        this.isDashing = false;
+        this.stunTimer = 0;
+      }
+
+      update(dt, gameMode, platforms) {
+        if (this.stunTimer > 0) {
+          this.stunTimer -= dt;
+          return;
+        }
+
+        // Handle dash cooldown & duration
+        if (this.dashCooldown > 0) this.dashCooldown -= dt;
+        if (this.isDashing) {
+          this.dashTimer -= dt;
+          if (this.dashTimer <= 0) {
+            this.isDashing = false;
+          }
+        }
+
+        let moveX = 0;
+        let moveY = 0;
+
+        // Player Controls Mapping
+        if (this.isP1) {
+          if (keys['KeyA']) moveX -= 1;
+          if (keys['KeyD']) moveX += 1;
+          if (keys['KeyW']) moveY -= 1;
+          if (keys['KeyS']) moveY += 1;
+
+          // Dash Trigger
+          if (keys['Space'] && this.dashCooldown <= 0) {
+            this.triggerDash(moveX, moveY);
+          }
+        } else {
+          if (keys['ArrowLeft']) moveX -= 1;
+          if (keys['ArrowRight']) moveX += 1;
+          if (keys['ArrowUp']) moveY -= 1;
+          if (keys['ArrowDown']) moveY += 1;
+
+          // Dash Trigger
+          if ((keys['Enter'] || keys['KeyL']) && this.dashCooldown <= 0) {
+            this.triggerDash(moveX, moveY);
+          }
+        }
+
+        // Apply Physics depending on Mode
+        if (gameMode === 'SUMO' || gameMode === 'CUPCAKE') {
+          // Platformer gravity physics
+          this.vy += 0.45; // Gravity
+
+          const currentSpeed = this.isDashing ? this.speed * 2.2 : this.speed;
+          if (moveX !== 0) {
+            this.vx = moveX * currentSpeed;
+          } else {
+            this.vx *= 0.82; // Friction
+          }
+
+          // Jump (Up Movement)
+          if (moveY < 0 && this.isGrounded) {
+            this.vy = -11.5;
+            this.isGrounded = false;
+            soundFx.playJump();
+            spawnSparkles(this.x, this.y + this.radius, '#fbcfe8', 6);
+          }
+
+          // Position Update
+          this.x += this.vx;
+          this.y += this.vy;
+
+          // Platform Collision Test
+          this.isGrounded = false;
+          for (let plat of platforms) {
+            if (
+              this.x + this.radius > plat.x &&
+              this.x - this.radius < plat.x + plat.w &&
+              this.y + this.radius >= plat.y &&
+              this.y - this.radius < plat.y + plat.h &&
+              this.vy >= 0
+            ) {
+              if (this.y - this.vy + this.radius <= plat.y + 8) {
+                this.y = plat.y - this.radius;
+                this.vy = 0;
+                this.isGrounded = true;
+              }
+            }
+          }
+
+          // Wall boundaries
+          if (this.x - this.radius < 0) {
+            this.x = this.radius;
+            this.vx = 0;
+          }
+          if (this.x + this.radius > GAME_WIDTH) {
+            this.x = GAME_WIDTH - this.radius;
+            this.vx = 0;
+          }
+
+        } else if (gameMode === 'TAG') {
+          // Free movement 360 degree arena
+          const currentSpeed = this.isDashing ? this.speed * 2.1 : this.speed;
+          
+          if (moveX !== 0 && moveY !== 0) {
+            moveX *= 0.7071;
+            moveY *= 0.7071;
+          }
+
+          this.vx = moveX * currentSpeed;
+          this.vy = moveY * currentSpeed;
+
+          this.x += this.vx;
+          this.y += this.vy;
+
+          // Boundaries
+          this.x = Math.max(this.radius, Math.min(GAME_WIDTH - this.radius, this.x));
+          this.y = Math.max(this.radius, Math.min(GAME_HEIGHT - this.radius, this.y));
+        }
+
+        // Create trailing particle while dashing
+        if (this.isDashing) {
+          spawnSparkles(this.x, this.y, this.color, 2);
+        }
+      }
+
+      triggerDash(dirX, dirY) {
+        this.isDashing = true;
+        this.dashTimer = 0.22;
+        this.dashCooldown = 0.8;
+        soundFx.playDash();
+
+        if (dirX !== 0 || dirY !== 0) {
+          this.vx = dirX * this.speed * 2.2;
+          this.vy = dirY * this.speed * 2.2;
+        } else {
+          // Default dash direction if no key held
+          this.vx = (this.isP1 ? 1 : -1) * this.speed * 2.2;
+        }
+        spawnSparkles(this.x, this.y, '#ffffff', 10);
+      }
+
+      draw(ctx) {
+        ctx.save();
+
+        // Stun flickering
+        if (this.stunTimer > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
+          ctx.restore();
+          return;
+        }
+
+        // Draw Player Shadow
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y + this.radius - 2, this.radius * 0.8, this.radius * 0.3, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        ctx.fill();
+
+        // Glowing Aura if dashing or tagged
+        if (this.isDashing || this.hasHeartTag) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius + 8, 0, Math.PI * 2);
+          ctx.fillStyle = this.hasHeartTag ? 'rgba(244, 63, 94, 0.4)' : 'rgba(244, 114, 182, 0.4)';
+          ctx.fill();
+        }
+
+        // Player Circle Body
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Emoji Avatar Inside
+        ctx.font = '22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.avatar, this.x, this.y + 1);
+
+        // Tag Heart Indicator overhead
+        if (this.hasHeartTag) {
+          ctx.font = '18px sans-serif';
+          ctx.fillText('💣💖', this.x, this.y - this.radius - 12);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // --- GAME STATE MANAGEMENT ---
+    let currentMode = 'CUPCAKE'; // CUPCAKE, SUMO, TAG
+    let isPlaying = false;
+    let isPaused = false;
+    let matchTime = 60;
+    let timerInterval = null;
+
+    const p1 = new Player(1, 200, 300, '#ec4899', '🐰', true);
+    const p2 = new Player(2, 760, 300, '#f43f5e', '🐱', false);
+
+    // Collectibles & Platforms
+    let cupcakes = [];
+    let platforms = [];
+
+    function initMap() {
+      platforms = [];
+      cupcakes = [];
+
+      if (currentMode === 'CUPCAKE') {
+        // Platformer Layout
+        platforms = [
+          { x: 0, y: 480, w: 960, h: 60, color: '#be185d' }, // Ground
+          { x: 150, y: 360, w: 220, h: 20, color: '#f472b6' },
+          { x: 590, y: 360, w: 220, h: 20, color: '#f472b6' },
+          { x: 370, y: 240, w: 220, h: 20, color: '#fb7185' },
+          { x: 100, y: 150, w: 180, h: 20, color: '#f472b6' },
+          { x: 680, y: 150, w: 180, h: 20, color: '#f472b6' },
+        ];
+        spawnCupcake();
+        spawnCupcake();
+      } else if (currentMode === 'SUMO') {
+        // Floating Island Platform
+        platforms = [
+          { x: 180, y: 380, w: 600, h: 30, color: '#ec4899' },
+          { x: 330, y: 250, w: 300, h: 20, color: '#f472b6' }
+        ];
+      } else if (currentMode === 'TAG') {
+        // Open Arena without platform gravity
+        platforms = [];
+      }
+    }
+
+    function spawnCupcake() {
+      if (currentMode !== 'CUPCAKE') return;
+      const x = 80 + Math.random() * (GAME_WIDTH - 160);
+      const y = 80 + Math.random() * 320;
+      cupcakes.push({ x, y, radius: 14, rot: 0 });
+    }
+
+    // Collision Detection Helpers
+    function checkCircleOverlap(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      return dist < (a.radius + b.radius);
+    }
+
+    function handlePlayerCollision() {
+      if (!checkCircleOverlap(p1, p2)) return;
+
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = dx / dist;
+      const ny = dy / dist;
+
+      // Knockback Force calculation
+      let force = 6;
+      if (p1.isDashing || p2.isDashing) force = 18;
+
+      if (p1.isDashing && !p2.isDashing) {
+        p2.vx += nx * force;
+        p2.vy += ny * force;
+        p2.stunTimer = 0.25;
+        soundFx.playHit();
+        spawnSparkles((p1.x + p2.x)/2, (p1.y + p2.y)/2, '#f43f5e', 15);
+      } else if (p2.isDashing && !p1.isDashing) {
+        p1.vx -= nx * force;
+        p1.vy -= ny * force;
+        p1.stunTimer = 0.25;
+        soundFx.playHit();
+        spawnSparkles((p1.x + p2.x)/2, (p1.y + p2.y)/2, '#ec4899', 15);
+      } else {
+        // Mutual bump
+        p1.vx -= nx * force * 0.8;
+        p1.vy -= ny * force * 0.8;
+        p2.vx += nx * force * 0.8;
+        p2.vy += ny * force * 0.8;
+      }
+
+      // Heart Tag Transfer logic
+      if (currentMode === 'TAG') {
+        if (p1.hasHeartTag && !p2.hasHeartTag) {
+          p1.hasHeartTag = false;
+          p2.hasHeartTag = true;
+          soundFx.playHit();
+          spawnSparkles(p2.x, p2.y, '#f43f5e', 20);
+        } else if (p2.hasHeartTag && !p1.hasHeartTag) {
+          p2.hasHeartTag = false;
+          p1.hasHeartTag = true;
+          soundFx.playHit();
+          spawnSparkles(p1.x, p1.y, '#ec4899', 20);
+        }
+      }
+    }
+
+    // --- MAIN RENDER LOOP ---
+    let lastTime = performance.now();
+
+    function gameLoop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      if (isPlaying && !isPaused) {
+        updateGame(dt);
+      }
+      renderGame();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateGame(dt) {
+      p1.update(dt, currentMode, platforms);
+      p2.update(dt, currentMode, platforms);
+
+      handlePlayerCollision();
+
+      // Mode-specific Logic
+      if (currentMode === 'CUPCAKE') {
+        // Check Cupcake collection
+        for (let i = cupcakes.length - 1; i >= 0; i--) {
+          const c = cupcakes[i];
+          if (checkCircleOverlap(p1, c)) {
+            p1.score += 1;
+            soundFx.playCollect();
+            spawnSparkles(c.x, c.y, '#f472b6', 15);
+            cupcakes.splice(i, 1);
+            setTimeout(spawnCupcake, 1000);
+            updateHUD();
+          } else if (checkCircleOverlap(p2, c)) {
+            p2.score += 1;
+            soundFx.playCollect();
+            spawnSparkles(c.x, c.y, '#fb7185', 15);
+            cupcakes.splice(i, 1);
+            setTimeout(spawnCupcake, 1000);
+            updateHUD();
+          }
+        }
+      } else if (currentMode === 'SUMO') {
+        // Fall off platform check
+        if (p1.y > GAME_HEIGHT + 50) {
+          p2.score += 1;
+          soundFx.playWin();
+          updateHUD();
+          p1.reset(300, 200);
+          p2.reset(660, 200);
+        }
+        if (p2.y > GAME_HEIGHT + 50) {
+          p1.score += 1;
+          soundFx.playWin();
+          updateHUD();
+          p1.reset(300, 200);
+          p2.reset(660, 200);
+        }
+      } else if (currentMode === 'TAG') {
+        // Continuous score for non-tagged player
+        if (p1.hasHeartTag) {
+          p2.score += dt * 1.5;
+        } else {
+          p1.score += dt * 1.5;
+        }
+        updateHUD();
+      }
+
+      // Update Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update(dt);
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    function renderGame() {
+      ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+      // Cute Pink Grid/Starry Background pattern
+      ctx.fillStyle = '#1e0514';
+      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+      // Background subtle grid
+      ctx.strokeStyle = 'rgba(244, 114, 182, 0.05)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < GAME_WIDTH; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, GAME_HEIGHT);
+        ctx.stroke();
+      }
+      for (let y = 0; y < GAME_HEIGHT; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(GAME_WIDTH, y);
+        ctx.stroke();
+      }
+
+      // Draw Platforms
+      for (let plat of platforms) {
+        ctx.fillStyle = plat.color;
+        ctx.beginPath();
+        ctx.roundRect(plat.x, plat.y, plat.w, plat.h, 10);
+        ctx.fill();
+
+        // Platform Glow border
+        ctx.strokeStyle = '#fbcfe8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Draw Cupcakes
+      for (let c of cupcakes) {
+        ctx.font = '24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🧁', c.x, c.y);
+      }
+
+      // Draw Particles
+      particles.forEach(p => p.draw(ctx));
+
+      // Draw Players
+      p1.draw(ctx);
+      p2.draw(ctx);
+    }
+
+    // --- HUD & STATE FLOW CONTROL ---
+    function updateHUD() {
+      document.getElementById('p1Score').innerText = Math.floor(p1.score);
+      document.getElementById('p2Score').innerText = Math.floor(p2.score);
+      document.getElementById('gameTimer').innerText = matchTime;
+    }
+
+    function startMatch() {
+      p1.score = 0;
+      p2.score = 0;
+      matchTime = 60;
+
+      // Position players according to mode
+      if (currentMode === 'TAG') {
+        p1.reset(200, 270);
+        p2.reset(760, 270);
+        p1.hasHeartTag = Math.random() < 0.5;
+        p2.hasHeartTag = !p1.hasHeartTag;
+      } else {
+        p1.reset(200, 300);
+        p2.reset(760, 300);
+        p1.hasHeartTag = false;
+        p2.hasHeartTag = false;
+      }
+
+      initMap();
+      updateHUD();
+
+      isPlaying = true;
+      isPaused = false;
+
+      document.getElementById('menuOverlay').classList.add('hidden');
+      document.getElementById('pauseOverlay').classList.add('hidden');
+      document.getElementById('winOverlay').classList.add('hidden');
+      document.getElementById('hudOverlay').classList.remove('hidden');
+
+      // Start match timer
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (isPlaying && !isPaused) {
+          matchTime--;
+          updateHUD();
+          if (matchTime <= 0) {
+            endMatch();
+          }
+        }
+      }, 1000);
+    }
+
+    function endMatch() {
+      isPlaying = false;
+      clearInterval(timerInterval);
+      soundFx.playWin();
+
+      const winOverlay = document.getElementById('winOverlay');
+      const winTitle = document.getElementById('winTitle');
+      const winSubtitle = document.getElementById('winSubtitle');
+      const winEmoji = document.getElementById('winEmoji');
+
+      const s1 = Math.floor(p1.score);
+      const s2 = Math.floor(p2.score);
+
+      if (s1 > s2) {
+        winTitle.innerText = 'PLAYER 1 MENANG!';
+        winEmoji.innerText = '🐰👑';
+      } else if (s2 > s1) {
+        winTitle.innerText = 'PLAYER 2 MENANG!';
+        winEmoji.innerText = '🐱👑';
+      } else {
+        winTitle.innerText = 'SERI! (DRAW)';
+        winEmoji.innerText = '🤝';
+      }
+
+      winSubtitle.innerText = `Skor Akhir: ${s1} - ${s2}`;
+      winOverlay.classList.remove('hidden');
+    }
+
+    // --- UI EVENT LISTENERS ---
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.mode-btn').forEach(b => {
+          b.classList.remove('border-2', 'border-pink-400');
+          b.classList.add('border-pink-400/20');
+        });
+        const target = e.currentTarget;
+        target.classList.add('border-2', 'border-pink-400');
+        target.classList.remove('border-pink-400/20');
+        
+        currentMode = target.dataset.mode;
+        const modeTitles = {
+          'CUPCAKE': 'CUPCAKE RUSH',
+          'SUMO': 'PINK SUMO',
+          'TAG': 'HEART TAG'
+        };
+        document.getElementById('gameModeTitle').innerText = modeTitles[currentMode];
+        soundFx.playCollect();
+      });
+    });
+
+    document.getElementById('btnStartGame').addEventListener('click', startMatch);
+    document.getElementById('btnPlayAgain').addEventListener('click', startMatch);
+
+    document.getElementById('btnPause').addEventListener('click', () => {
+      if (!isPlaying) return;
+      isPaused = !isPaused;
+      document.getElementById('pauseOverlay').classList.toggle('hidden', !isPaused);
+    });
+
+    document.getElementById('btnResume').addEventListener('click', () => {
+      isPaused = false;
+      document.getElementById('pauseOverlay').classList.add('hidden');
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', startMatch);
+
+    document.getElementById('btnBackMenu').addEventListener('click', () => {
+      isPlaying = false;
+      clearInterval(timerInterval);
+      document.getElementById('pauseOverlay').classList.add('hidden');
+      document.getElementById('hudOverlay').classList.add('hidden');
+      document.getElementById('menuOverlay').classList.remove('hidden');
+    });
+
+    document.getElementById('winBackMenu').addEventListener('click', () => {
+      document.getElementById('winOverlay').classList.add('hidden');
+      document.getElementById('hudOverlay').classList.add('hidden');
+      document.getElementById('menuOverlay').classList.remove('hidden');
+    });
+
+    // Sound Toggle
+    const soundBtn = document.getElementById('btnSound');
+    const soundIcon = document.getElementById('soundIcon');
+    soundBtn.addEventListener('click', () => {
+      soundFx.enabled = !soundFx.enabled;
+      soundIcon.className = soundFx.enabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      soundBtn.querySelector('span').innerText = `Suara: ${soundFx.enabled ? 'ON' : 'OFF'}`;
+    });
+
+    // Help Modal
+    document.getElementById('btnHelp').addEventListener('click', () => {
+      document.getElementById('helpModal').classList.remove('hidden');
+    });
+    document.getElementById('btnCloseHelp').addEventListener('click', () => {
+      document.getElementById('helpModal').classList.add('hidden');
+    });
+
+    // Start Game Loop Animation
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
